@@ -216,7 +216,7 @@ async function addItem(li, listCont, options) {
     buttonDelete.src = "../assets/delete-button.svg";
     buttonDelete.alt = "Delete";
     buttonDelete.addEventListener('click', async () => {
-        const uuid = listCont.parentElement.parentElement.id;
+        const card = listItem.parentElement.parentElement.parentElement;
         await query('order', 'POST', {
             itemId: id,
             remove: true,
@@ -224,10 +224,11 @@ async function addItem(li, listCont, options) {
                 amount: itemCountP.innerText,
             },
             position: {
-                remove: true
+                remove: true,
+                id: id
             }
         }, {
-            id: uuid,
+            id: card.id,
             positionId: id,
             drugId: itemNameP.getAttribute('value')
         });
@@ -266,7 +267,7 @@ async function addItem(li, listCont, options) {
                         amount: amount,
                     }
                 }, {
-                    id: itemNameSelect.value,
+                    id: listItem.id,
                     drugId: itemNameSelect.value
                 });
                 // Проверка на то, хватает ли на складе препаратов (с учётом редактирования), если нет - return
@@ -288,7 +289,7 @@ async function addItem(li, listCont, options) {
                         remove: true
                     }
                 }, {
-                    id: uuid,
+                    id: card.id,
                     positionId: id,
                     drugId: itemNameSelect.value
                 });

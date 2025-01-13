@@ -226,27 +226,29 @@ try {
     server.app.delete('/order', async (req, res) => {
         try {
             const {id, date} = req.query;
-            if (date) {
-                let sql = `DELETE FROM public.order ` +
-                    `WHERE date < '${date}'`
-                await server.dbExecute(sql, false);
-                res.status(200).send();
-            } else {
-                if (!id) {
-                    throw new Error('Empty id');
-                }
-                let sql = 'SELECT positions FROM public.order;'
-                const positions: string[] = (await server.dbExecute(sql, true)).rows[0].positions;
-                if (positions.length > 0) {
-                    sql = `DELETE FROM public.position `
-                        + `WHERE id IN (${positions.map(position => `'${position}'`).join(', ')})`;
-                    await server.dbExecute(sql, false);
-                }
-                sql = `DELETE FROM public.order `
-                    + `WHERE id = '${id}'`
-                await server.dbExecute(sql, true);
-                res.status(200).send();
-            }
+            let sql = `SELECT * FROM public.order ` +
+                    (id ? `WHERE id = '${id}'` : `WHERE date < '${date}'`);
+            const result: any = await server.dbExecute(sql, true);
+	    const rows: any[] = result.rows;
+	    for (const row of rows) {
+		sql = `SELECT * FROM public."position" `
+			+ `WHERE id IN (${row.positions.map((position: any) => `'${position}'`).join(', ')})`;
+		const positions = (await server.dbExecute(sql, true)).rows;
+		for (const position of positions) {
+			console.log(position);
+			sql = `UPDATE public.drug `
+				+ `SET amount = amount + ${position.count} `
+				+ `WHERE id = '${position.drug}'`;
+			await server.dbExecute(sql, false);
+			sql = `DELETE FROM public.position `
+				+ `WHERE id = '${position.id}'`;
+			await server.dbExecute(sql, false);
+		}
+	    }
+	    sql = `DELETE FROM public.order ` +
+                    (id ? `WHERE id = '${id}'` : `WHERE date < '${date}'`);
+	    await server.dbExecute(sql, true);
+            res.status(200).send();
         } catch (e) {
             console.error(e);
             res.status(400).send(e);
@@ -330,7 +332,7 @@ try {
                 + 'SET '
                 + set.filter(value => value.length > 0).join(', ') + ' '
                 + `WHERE id = '${id}'`
-
+	console.log(sql);
             await server.dbExecute(sql, true);
             res.status(200).send();
         } catch (e) {

@@ -310,19 +310,20 @@ async function addItem(li: Element, listCont: Element, options?: IItemOptions) {
     buttonDelete.src = "../assets/delete-button.svg";
     buttonDelete.alt = "Delete";
     buttonDelete.addEventListener('click', async () => {
-        const uuid = listCont.parentElement!.parentElement!.id;
+        const card = listItem.parentElement!.parentElement!.parentElement!;
         await query('order', 'POST', {
             itemId: id,
             remove: true,
             drug: {
                 amount: itemCountP.innerText,
             },
-            position: {
-                remove: true
-            }
+	    position: {
+		remove: true,
+		id: id
+	   }
         }, {
-            id: uuid,
-            positionId: id,
+            id: card.id,
+	    positionId: id,
             drugId: itemNameP.getAttribute('value')
         });
 
@@ -364,7 +365,7 @@ async function addItem(li: Element, listCont: Element, options?: IItemOptions) {
                         amount: amount,
                     }
                 }, {
-                    id: itemNameSelect.value,
+                    id: listItem.id,
                     drugId: itemNameSelect.value
                 });
 
@@ -389,7 +390,7 @@ async function addItem(li: Element, listCont: Element, options?: IItemOptions) {
                         remove: true
                     }
                 }, {
-                    id: uuid,
+                    id: card.id,
                     positionId: id,
                     drugId: itemNameSelect.value
                 });
